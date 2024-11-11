@@ -2,8 +2,14 @@ import React, { useState } from 'react';
 import { Bar, Line } from 'react-chartjs-2';
 import { Chart, CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend } from 'chart.js';
 import axios from 'axios';
+import { useAuth0 } from '@auth0/auth0-react'; // Importar el hook de Auth0
 
-// Registramos las escalas y elementos que necesitamos
+// Importar componentes de autenticación
+import LoginButton from './components/loginbutton';
+import LogoutButton from './components/logoutbutton';
+import Profile from './components/profile';
+
+// Registrar escalas y elementos necesarios para Chart.js
 Chart.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend);
 
 const App = () => {
@@ -11,6 +17,7 @@ const App = () => {
     const [columns, setColumns] = useState([]);
     const [xColumn, setXColumn] = useState('');
     const [yColumn, setYColumn] = useState('');
+    const { isAuthenticated } = useAuth0(); // Obtener estado de autenticación
 
     const uploadFile = async (file) => {
         const formData = new FormData();
@@ -21,11 +28,11 @@ const App = () => {
                 headers: { "Content-Type": "multipart/form-data" },
             });
 
-            // Obtiene los datos y columnas
+            // Obtener los datos y las columnas
             const data = response.data.data;
             const detectedColumns = Object.keys(data[0]);
 
-            // Configura las columnas detectadas y los datos
+            // Configurar columnas detectadas y datos
             setColumns(detectedColumns);
             setChartData(data);
         } catch (error) {
@@ -64,36 +71,47 @@ const App = () => {
 
     return (
         <div>
-            <input type="file" onChange={(e) => uploadFile(e.target.files[0])} />
+            <h1>Aplicación de Gráficos con Auth0</h1>
             
-            {columns.length > 0 && (
-                <div>
-                    <label>
-                        Selecciona la columna X:
-                        <select value={xColumn} onChange={(e) => setXColumn(e.target.value)}>
-                            <option value="">Selecciona una opción</option>
-                            {columns.map(col => (
-                                <option key={col} value={col}>{col}</option>
-                            ))}
-                        </select>
-                    </label>
+            {/* Mostrar botones de autenticación y perfil */}
+            {isAuthenticated ? <LogoutButton /> : <LoginButton />}
+            <Profile />
 
-                    <label>
-                        Selecciona la columna Y:
-                        <select value={yColumn} onChange={(e) => setYColumn(e.target.value)}>
-                            <option value="">Selecciona una opción</option>
-                            {columns.map(col => (
-                                <option key={col} value={col}>{col}</option>
-                            ))}
-                        </select>
-                    </label>
-                </div>
-            )}
-
-            {chartConfig && (
+            {/* Contenido principal de la aplicación */}
+            {isAuthenticated && (
                 <>
-                    <Line data={chartConfig} />
-                    <Bar data={chartConfig} />
+                    <input type="file" onChange={(e) => uploadFile(e.target.files[0])} />
+
+                    {columns.length > 0 && (
+                        <div>
+                            <label>
+                                Selecciona la columna X:
+                                <select value={xColumn} onChange={(e) => setXColumn(e.target.value)}>
+                                    <option value="">Selecciona una opción</option>
+                                    {columns.map(col => (
+                                        <option key={col} value={col}>{col}</option>
+                                    ))}
+                                </select>
+                            </label>
+
+                            <label>
+                                Selecciona la columna Y:
+                                <select value={yColumn} onChange={(e) => setYColumn(e.target.value)}>
+                                    <option value="">Selecciona una opción</option>
+                                    {columns.map(col => (
+                                        <option key={col} value={col}>{col}</option>
+                                    ))}
+                                </select>
+                            </label>
+                        </div>
+                    )}
+
+                    {chartConfig && (
+                        <>
+                            <Line data={chartConfig} />
+                            <Bar data={chartConfig} />
+                        </>
+                    )}
                 </>
             )}
         </div>
