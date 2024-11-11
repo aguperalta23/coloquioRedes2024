@@ -8,6 +8,9 @@ Chart.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement
 
 const App = () => {
     const [chartData, setChartData] = useState(null);
+    const [columns, setColumns] = useState([]);
+    const [xColumn, setXColumn] = useState('');
+    const [yColumn, setYColumn] = useState('');
 
     const uploadFile = async (file) => {
         const formData = new FormData();
@@ -18,43 +21,79 @@ const App = () => {
                 headers: { "Content-Type": "multipart/form-data" },
             });
 
-            // Procesa los datos para el gráfico basado en la respuesta de la API
-            const data = response.data;
-            const labels = data.data.map(item => item["indice_tiempo"]); // Ejemplo de columna de tiempo
-            const productionData = data.data.map(item => item["produccion_arroz_t"]);
-            const yieldData = data.data.map(item => item["rendimiento_arroz_kgxha"]);
+            // Obtiene los datos y columnas
+            const data = response.data.data;
+            const detectedColumns = Object.keys(data[0]);
 
-            setChartData({
-                labels,
-                datasets: [
-                    {
-                        type: 'line',
-                        label: 'Producción de Arroz (Toneladas)',
-                        data: productionData,
-                        borderColor: 'blue',
-                        borderWidth: 2,
-                        fill: false,
-                    },
-                    {
-                        type: 'bar',
-                        label: 'Rendimiento de Arroz (kg/ha)',
-                        data: yieldData,
-                        backgroundColor: 'orange',
-                    },
-                ],
-            });
+            // Configura las columnas detectadas y los datos
+            setColumns(detectedColumns);
+            setChartData(data);
         } catch (error) {
             console.error("Error al cargar el archivo:", error);
         }
     };
 
+    const generateChartData = () => {
+        if (!chartData || !xColumn || !yColumn) return null;
+
+        const labels = chartData.map(item => item[xColumn]);
+        const yData = chartData.map(item => item[yColumn]);
+
+        return {
+            labels,
+            datasets: [
+                {
+                    type: 'line',
+                    label: `${yColumn} (línea)`,
+                    data: yData,
+                    borderColor: 'blue',
+                    borderWidth: 2,
+                    fill: false,
+                },
+                {
+                    type: 'bar',
+                    label: `${yColumn} (barras)`,
+                    data: yData,
+                    backgroundColor: 'orange',
+                },
+            ],
+        };
+    };
+
+    const chartConfig = generateChartData();
+
     return (
         <div>
             <input type="file" onChange={(e) => uploadFile(e.target.files[0])} />
-            {chartData && (
+            
+            {columns.length > 0 && (
+                <div>
+                    <label>
+                        Selecciona la columna X:
+                        <select value={xColumn} onChange={(e) => setXColumn(e.target.value)}>
+                            <option value="">Selecciona una opción</option>
+                            {columns.map(col => (
+                                <option key={col} value={col}>{col}</option>
+                            ))}
+                        </select>
+                    </label>
+
+                    <label>
+                        Selecciona la columna Y:
+                        <select value={yColumn} onChange={(e) => setYColumn(e.target.value)}>
+                            <option value="">Selecciona una opción</option>
+                            {columns.map(col => (
+                                <option key={col} value={col}>{col}</option>
+                            ))}
+                        </select>
+                    </label>
+                </div>
+            )}
+
+            {chartConfig && (
                 <>
-                    <Line data={chartData} />
-                    <Bar data={chartData} />
+                    <Line data={chartConfig} />
+                    <Bar data={chartConfig} />
                 </>
             )}
         </div>
