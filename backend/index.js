@@ -15,7 +15,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 app.use('/api/dataset', datasetRoutes);
-
+console.log("API Key:", process.env.OPENAI_API_KEY);
 
 app.use('/api/auth', authRoutes);
 mongoose.connect(process.env.MONGO_URI, {

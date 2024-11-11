@@ -2,7 +2,7 @@
 
 const multer = require('multer');
 const path = require('path');
-
+//const upload = multer({ dest: 'uploads/' })
 // Configuración de almacenamiento en carpeta temporal
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
