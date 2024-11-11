@@ -18,16 +18,18 @@ async function analyzeDataWithAI(results) {
     try {
         // Llamada a OpenAI para crear un mensaje de ejemplo
         const completion = await openai.chat.completions.create({
-            model: "gpt-3.5-turbo", // Asegúrate de que el modelo esté disponible
+            model: "gpt-4", // Asegúrate de que el modelo esté disponible
             messages: [
-                { "role": "user", "content": "Sugiere un gráfico para los siguientes datos:" },
-                { "role": "user", "content": JSON.stringify(results) }
+                { "role": "user", "content": `haz un gráfico en la librería CHART.JS para los siguientes datos: ${JSON.stringify(results)}` }
+                
             ]
         });
 
         // Obtén la respuesta de OpenAI
         const aiResponse = completion.choices[0].message.content;
         console.log("Sugerencias de gráficos:", aiResponse);
+       
+
 
         return aiResponse; // Retorna las sugerencias de gráficos o el análisis
     } catch (error) {
